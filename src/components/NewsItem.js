@@ -5,7 +5,7 @@ import Button from 'react-bootstrap/Button';
 const NewsItem = ({ title, description, url, image }) => {
     return (
         <div className="news-item">
-        <Card bg="Secondary" style={{ width: '60rem' }}>
+        <Card bg="Secondary" style={{ width: '80%' }}>
             <Card.Img variant="top" src={image} />
             <Card.Body>
                 <Card.Title>{title}</Card.Title>
