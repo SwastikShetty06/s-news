@@ -1,33 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   font-family: Arial, sans-serif;
 }
 
-.navbar {
-  background-color: #333;
-  color: white;
-  padding: 10px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.navbar ul {
-  list-style: none;
-  display: flex;
-  gap: 10px;
-}
-
-.news-item {
-  border: 1px solid #ccc;
+.searchDiv{
   padding: 20px;
   margin: 10px 0;
 }
 
-.news-item img {
-  max-width: 100%;
+.homeH1{
+  font-size: 300%;
+  font-family: 'Times New Roman', Times, serif;
 }
 
-button {
-  padding: 10px;
-  margin-top: 10px;
-  cursor: pointer;
+.itemButton{
+  color: aliceblue;
 }
+
+.news-item {
+  padding: 20px;
+  margin: 10px 0;
+}
+

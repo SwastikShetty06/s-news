@@ -12,7 +12,7 @@ const SearchResults = () => {
     };
 
     return (
-        <div>
+        <div className='searchDiv'>
         <input
             type="text"
             value={query}

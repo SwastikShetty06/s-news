@@ -10,7 +10,7 @@ const NewsItem = ({ title, description, url, image }) => {
             <Card.Body>
                 <Card.Title>{title}</Card.Title>
                 <Card.Text>{description}</Card.Text>
-                <Button variant="primary"><a href={url} rel="url"  >Read more</a></Button>
+                <Button className='itemButton' variant="primary"><a href={url} rel="url"  >Read more</a></Button>
             </Card.Body>
         </Card>
         </div>
