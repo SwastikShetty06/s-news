@@ -25,6 +25,7 @@ const NewsList = () => {
             image={article.image}
             />
         ))}
+        
         <button onClick={() => setPage(page + 1)}>Load More</button>
         </div>
     );
