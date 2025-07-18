@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 
 const NewsContext = createContext();
 
@@ -92,6 +92,8 @@ function newsReducer(state, action) {
         searchPage: 1,
         searchResults: [],
         searchHasMore: true,
+        loading: false,
+        error: null,
       };
 
     case 'SET_HAS_MORE':
@@ -177,64 +179,64 @@ export function NewsProvider({ children }) {
     }
   }, [state.darkMode]);
 
-  // Helper functions
-  const setLoading = (loading) => {
+  // Memoize helper functions to prevent recreation on every render
+  const setLoading = useCallback((loading) => {
     dispatch({ type: 'SET_LOADING', payload: loading });
-  };
+  }, []);
 
-  const setError = (error) => {
+  const setError = useCallback((error) => {
     dispatch({ type: 'SET_ERROR', payload: error });
-  };
+  }, []);
 
-  const setArticles = (articles) => {
+  const setArticles = useCallback((articles) => {
     dispatch({ type: 'SET_ARTICLES', payload: articles });
-  };
+  }, []);
 
-  const appendArticles = (articles) => {
+  const appendArticles = useCallback((articles) => {
     dispatch({ type: 'APPEND_ARTICLES', payload: articles });
-  };
+  }, []);
 
-  const setSearchResults = (results) => {
+  const setSearchResults = useCallback((results) => {
     dispatch({ type: 'SET_SEARCH_RESULTS', payload: results });
-  };
+  }, []);
 
-  const appendSearchResults = (results) => {
+  const appendSearchResults = useCallback((results) => {
     dispatch({ type: 'APPEND_SEARCH_RESULTS', payload: results });
-  };
+  }, []);
 
-  const setCurrentPage = (page) => {
+  const setCurrentPage = useCallback((page) => {
     dispatch({ type: 'SET_CURRENT_PAGE', payload: page });
-  };
+  }, []);
 
-  const setSearchPage = (page) => {
+  const setSearchPage = useCallback((page) => {
     dispatch({ type: 'SET_SEARCH_PAGE', payload: page });
-  };
+  }, []);
 
-  const setSearchQuery = (query) => {
+  const setSearchQuery = useCallback((query) => {
     dispatch({ type: 'SET_SEARCH_QUERY', payload: query });
-  };
+  }, []);
 
-  const setHasMore = (hasMore) => {
+  const setHasMore = useCallback((hasMore) => {
     dispatch({ type: 'SET_HAS_MORE', payload: hasMore });
-  };
+  }, []);
 
-  const setSearchHasMore = (hasMore) => {
+  const setSearchHasMore = useCallback((hasMore) => {
     dispatch({ type: 'SET_SEARCH_HAS_MORE', payload: hasMore });
-  };
+  }, []);
 
-  const toggleDarkMode = () => {
+  const toggleDarkMode = useCallback(() => {
     dispatch({ type: 'TOGGLE_DARK_MODE' });
-  };
+  }, []);
 
-  const setCategory = (category) => {
+  const setCategory = useCallback((category) => {
     dispatch({ type: 'SET_CATEGORY', payload: category });
-  };
+  }, []);
 
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     dispatch({ type: 'CLEAR_SEARCH' });
-  };
+  }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     ...state,
     categories,
     setLoading,
@@ -251,7 +253,7 @@ export function NewsProvider({ children }) {
     toggleDarkMode,
     setCategory,
     clearSearch,
-  };
+  }), [state, setLoading, setError, setArticles, appendArticles, setSearchResults, appendSearchResults, setCurrentPage, setSearchPage, setSearchQuery, setHasMore, setSearchHasMore, toggleDarkMode, setCategory, clearSearch]);
 
   return <NewsContext.Provider value={value}>{children}</NewsContext.Provider>;
 }

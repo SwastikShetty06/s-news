@@ -27,13 +27,11 @@ const CustomNavbar = () => {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchQuery(value);
-    
-    // Auto-navigate to search page with live results
-    if (value.trim()) {
-      navigate(`/search?q=${encodeURIComponent(value)}`);
-    } else {
-      navigate('/');
-    }
+  };
+
+  const handleClearSearch = () => {
+    clearSearch();
+    navigate('/');
   };
 
   const navItems = [
@@ -95,10 +93,7 @@ const CustomNavbar = () => {
                   {searchQuery && (
                     <button
                       type="button"
-                      onClick={() => {
-                        clearSearch();
-                        navigate('/');
-                      }}
+                      onClick={handleClearSearch}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       <X className="w-4 h-4" />
@@ -153,10 +148,7 @@ const CustomNavbar = () => {
                   {searchQuery && (
                     <button
                       type="button"
-                      onClick={() => {
-                        clearSearch();
-                        navigate('/');
-                      }}
+                      onClick={handleClearSearch}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       <X className="w-4 h-4" />

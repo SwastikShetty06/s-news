@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, RefreshCw, AlertCircle } from 'lucide-react';
 import NewsItem from './NewsItem';
@@ -11,67 +11,84 @@ const NewsList = () => {
         articles,
         loading,
         error,
-        currentPage,
-        hasMore,
-        selectedCategory,
         setLoading,
         setError,
         setArticles,
-        appendArticles,
         setCurrentPage,
         setHasMore
     } = useNews();
 
-    const loadNews = useCallback(async (page = 1, append = false) => {
+
+    // Load initial news on mount - only once
+    useEffect(() => {
+        let isMounted = true;
+        
+        const loadInitialNews = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                const news = await fetchTopHeadlines(1);
+                
+                if (isMounted) {
+                    if (news && news.length > 0) {
+                        setArticles(news);
+                        if (news.length < 10) {
+                            setHasMore(false);
+                        }
+                    } else {
+                        setHasMore(false);
+                        setArticles([]);
+                    }
+                }
+            } catch (err) {
+                if (isMounted) {
+                    const errorMessage = 'Failed to load news. Please try again.';
+                    setError(errorMessage);
+                    toast.error(errorMessage);
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+        
+        loadInitialNews();
+        
+        return () => {
+            isMounted = false;
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Empty dependency array to run only once
+
+    const handleRefresh = async () => {
         try {
             setLoading(true);
             setError(null);
+            setCurrentPage(1);
+            setHasMore(true);
             
-            const news = await fetchTopHeadlines(page);
+            const news = await fetchTopHeadlines(1);
             
             if (news && news.length > 0) {
-                if (append) {
-                    appendArticles(news);
-                } else {
-                    setArticles(news);
-                }
-                
+                setArticles(news);
                 if (news.length < 10) {
                     setHasMore(false);
                 }
+                toast.success('News refreshed!');
             } else {
                 setHasMore(false);
-                if (page === 1) {
-                    setArticles([]);
-                }
+                setArticles([]);
+                toast.error('No news found.');
             }
         } catch (err) {
-            const errorMessage = 'Failed to load news. Please try again.';
+            const errorMessage = 'Failed to refresh news. Please try again.';
             setError(errorMessage);
             toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
-    }, [setLoading, setError, setArticles, appendArticles, setHasMore]);
-
-    // Load initial news
-    useEffect(() => {
-        loadNews(1, false);
-    }, [loadNews, selectedCategory]); // Reload when category changes
-
-    const handleLoadMore = () => {
-        if (!loading && hasMore) {
-            const nextPage = currentPage + 1;
-            setCurrentPage(nextPage);
-            loadNews(nextPage, true);
-        }
-    };
-
-    const handleRefresh = () => {
-        setCurrentPage(1);
-        setHasMore(true);
-        loadNews(1, false);
-        toast.success('News refreshed!');
     };
 
     if (error && articles.length === 0) {
@@ -105,6 +122,20 @@ const NewsList = () => {
                 <p className="text-gray-600 dark:text-gray-400 mt-2">
                     Stay updated with the latest headlines from around the world
                 </p>
+                
+                {/* Mock data banner - only show when using mock data */}
+                {articles.length > 0 && articles[0].url === 'https://example.com/article1' && (
+                    <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 bg-blue-500 rounded-full flex-shrink-0"></div>
+                            <p className="text-sm text-blue-800 dark:text-blue-200">
+                                <strong>Demo Mode:</strong> Currently showing sample news articles. 
+                                This happens when the API rate limit is exceeded or the account needs activation. 
+                                Visit <a href="https://gnews.io/dashboard" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-600">gnews.io/dashboard</a> to check your account status.
+                            </p>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* News Grid */}
@@ -148,37 +179,29 @@ const NewsList = () => {
                 </div>
             )}
 
-            {/* Load More Button */}
-            {articles.length > 0 && hasMore && (
+            {/* Refresh News Button */}
+            {articles.length > 0 && (
                 <div className="flex justify-center mt-12">
                     <button
-                        onClick={handleLoadMore}
+                        onClick={handleRefresh}
                         disabled={loading}
                         className="flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loading ? (
                             <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                <span>Loading...</span>
+                                <span>Refreshing...</span>
                             </>
                         ) : (
                             <>
                                 <RefreshCw className="w-5 h-5" />
-                                <span>Load More News</span>
+                                <span>Refresh News</span>
                             </>
                         )}
                     </button>
                 </div>
             )}
 
-            {/* No More Articles */}
-            {articles.length > 0 && !hasMore && !loading && (
-                <div className="text-center py-8">
-                    <p className="text-gray-600 dark:text-gray-400">
-                        You've reached the end of the news feed.
-                    </p>
-                </div>
-            )}
         </div>
     );
 };
