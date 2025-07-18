@@ -18,8 +18,6 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/search" element={<SearchResults />} />
-              <Route path="/favorites" element={<div className="p-8 text-center">Favorites page coming soon!</div>} />
-              <Route path="/read-later" element={<div className="p-8 text-center">Read Later page coming soon!</div>} />
             </Routes>
           </main>
           <Footer />
