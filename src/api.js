@@ -144,7 +144,42 @@ export const fetchTopHeadlines = async (page = 1, category = 'general') => {
     } catch (error) {
         console.error("Error fetching top headlines", error);
 
-        // Handle rate limit (429), 403, or Network Errors (CORS) by falling back to mock data
+        // Handle Network Errors (CORS) by trying a proxy first
+        if (!error.response || error.code === 'ERR_NETWORK') {
+            try {
+                console.log('CORS error detected, attempting proxy...');
+                // Re-construct params for the proxy request
+                const retryParams = {
+                    token: API_KEY,
+                    lang: 'en',
+                    page: page,
+                    max: 10
+                };
+                if (category && category !== 'general') {
+                    retryParams.topic = category;
+                }
+
+                // Construct URL manually for the proxy
+                const queryString = Object.keys(retryParams)
+                    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(retryParams[key])}`)
+                    .join('&');
+                const targetUrl = `${BASE_URL}/top-headlines?${queryString}`;
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+
+                const response = await axios.get(proxyUrl);
+                if (response.data.contents) {
+                    const parsedData = JSON.parse(response.data.contents);
+                    if (parsedData.articles) {
+                        return parsedData.articles;
+                    }
+                }
+            } catch (proxyError) {
+                console.warn('Proxy attempt failed', proxyError);
+                // Continue to mock data fallback
+            }
+        }
+
+        // Handle rate limit (429), 403, or failed proxy by falling back to mock data
         if (error.response?.status === 429 || error.response?.status === 403 || !error.response || error.code === 'ERR_NETWORK') {
             console.log('API error or CORS issue, using mock data');
             // Simulate API delay
@@ -184,15 +219,17 @@ export const searchNews = async (query, page = 1, sortBy = 'publishedAt') => {
     }
 
     try {
+        const params = {
+            q: query,
+            token: API_KEY,
+            lang: 'en',
+            page: page,
+            max: 10,
+            sortby: sortBy // publishedAt or relevance
+        };
+
         const response = await axios.get(`${BASE_URL}/search`, {
-            params: {
-                q: query,
-                token: API_KEY,
-                lang: 'en',
-                page: page,
-                max: 10,
-                sortby: sortBy // publishedAt or relevance
-            },
+            params: params,
             cancelToken: cancelTokenSource.token
         });
 
@@ -222,6 +259,38 @@ export const searchNews = async (query, page = 1, sortBy = 'publishedAt') => {
         return response.data.articles;
     } catch (error) {
         console.error("Error searching for news", error);
+
+        // Handle Network Errors (CORS) by trying a proxy first
+        if (!error.response || error.code === 'ERR_NETWORK') {
+            try {
+                console.log('CORS error detected, attempting proxy for search...');
+                // Construct URL manually for the proxy
+                const params = {
+                    q: query,
+                    token: API_KEY,
+                    lang: 'en',
+                    page: page,
+                    max: 10,
+                    sortby: sortBy
+                };
+                const queryString = Object.keys(params)
+                    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+                    .join('&');
+                const targetUrl = `${BASE_URL}/search?${queryString}`;
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+
+                const response = await axios.get(proxyUrl);
+                if (response.data.contents) {
+                    const parsedData = JSON.parse(response.data.contents);
+                    if (parsedData.articles) {
+                        return parsedData.articles;
+                    }
+                }
+            } catch (proxyError) {
+                console.warn('Proxy attempt failed', proxyError);
+                // Continue to mock data fallback
+            }
+        }
 
         // Handle rate limit (429), 403, or Network Errors (CORS) by falling back to mock data
         if (error.response?.status === 429 || error.response?.status === 403 || !error.response || error.code === 'ERR_NETWORK') {
