@@ -144,9 +144,9 @@ export const fetchTopHeadlines = async (page = 1, category = 'general') => {
     } catch (error) {
         console.error("Error fetching top headlines", error);
 
-        // Handle rate limit (429) or other API errors by falling back to mock data
-        if (error.response?.status === 429 || error.response?.status === 403) {
-            console.log('API rate limit exceeded, using mock data');
+        // Handle rate limit (429), 403, or Network Errors (CORS) by falling back to mock data
+        if (error.response?.status === 429 || error.response?.status === 403 || !error.response || error.code === 'ERR_NETWORK') {
+            console.log('API error or CORS issue, using mock data');
             // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -223,9 +223,9 @@ export const searchNews = async (query, page = 1, sortBy = 'publishedAt') => {
     } catch (error) {
         console.error("Error searching for news", error);
 
-        // Handle rate limit (429) or other API errors by falling back to mock data
-        if (error.response?.status === 429 || error.response?.status === 403) {
-            console.log('API rate limit exceeded, using mock data for search');
+        // Handle rate limit (429), 403, or Network Errors (CORS) by falling back to mock data
+        if (error.response?.status === 429 || error.response?.status === 403 || !error.response || error.code === 'ERR_NETWORK') {
+            console.log('API error or CORS issue, using mock data for search');
             // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 1000));
 
