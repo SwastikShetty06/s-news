@@ -1,6 +1,8 @@
 # S-News
 
-A modern news application built with React featuring real-time updates, elegant design, and seamless reading experience.
+A modern, responsive news application built with React that provides real-time headlines from the GNews API.
+
+[Live Demo](https://SwastikShetty06.github.io/s-news)
 
 ## Features
 
