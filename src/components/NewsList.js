@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import { Loader2, RefreshCw, AlertCircle, ExternalLink, Clock, User } from 'lucide-react';
 import NewsItem from './NewsItem';
 import { fetchTopHeadlines } from '../api';
 import { useNews } from '../context/NewsContext';
 import toast from 'react-hot-toast';
+import { formatDistanceToNow } from 'date-fns';
 
 const NewsList = () => {
     const {
@@ -15,21 +16,22 @@ const NewsList = () => {
         setError,
         setArticles,
         setCurrentPage,
-        setHasMore
+        setHasMore,
+        selectedCategory
     } = useNews();
 
 
-    // Load initial news on mount - only once
+    // Load news when category changes or on mount
     useEffect(() => {
         let isMounted = true;
-        
-        const loadInitialNews = async () => {
+
+        const loadNews = async () => {
             try {
                 setLoading(true);
                 setError(null);
-                
-                const news = await fetchTopHeadlines(1);
-                
+
+                const news = await fetchTopHeadlines(1, selectedCategory);
+
                 if (isMounted) {
                     if (news && news.length > 0) {
                         setArticles(news);
@@ -53,14 +55,14 @@ const NewsList = () => {
                 }
             }
         };
-        
-        loadInitialNews();
-        
+
+        loadNews();
+
         return () => {
             isMounted = false;
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Empty dependency array to run only once
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedCategory]);
 
     const handleRefresh = async () => {
         try {
@@ -68,9 +70,9 @@ const NewsList = () => {
             setError(null);
             setCurrentPage(1);
             setHasMore(true);
-            
-            const news = await fetchTopHeadlines(1);
-            
+
+            const news = await fetchTopHeadlines(1, selectedCategory);
+
             if (news && news.length > 0) {
                 setArticles(news);
                 if (news.length < 10) {
@@ -88,6 +90,15 @@ const NewsList = () => {
             toast.error(errorMessage);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const getTimeAgo = (dateString) => {
+        if (!dateString) return 'Recently';
+        try {
+            return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+        } catch {
+            return 'Recently';
         }
     };
 
@@ -116,32 +127,82 @@ const NewsList = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                    Latest News
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white capitalize">
+                    {selectedCategory === 'general' ? 'Top Headlines' : `${selectedCategory} News`}
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-2">
-                    Stay updated with the latest headlines from around the world
+                    Stay updated with the latest stories
                 </p>
-                
-                {/* Mock data banner - only show when using mock data */}
+
+                {/* Mock data banner */}
                 {articles.length > 0 && articles[0].url === 'https://example.com/article1' && (
                     <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                         <div className="flex items-center space-x-2">
                             <div className="w-4 h-4 bg-blue-500 rounded-full flex-shrink-0"></div>
                             <p className="text-sm text-blue-800 dark:text-blue-200">
-                                <strong>Demo Mode:</strong> Currently showing sample news articles. 
-                                This happens when the API rate limit is exceeded or the account needs activation. 
-                                Visit <a href="https://gnews.io/dashboard" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-600">gnews.io/dashboard</a> to check your account status.
+                                <strong>Demo Mode:</strong> Currently showing sample news articles.
                             </p>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* News Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Hero Section (First Article) */}
+            {articles.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-12 group cursor-pointer"
+                >
+                    <div className="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden shadow-xl">
+                        <img
+                            src={articles[0].image || 'https://via.placeholder.com/800x400?text=No+Image'}
+                            alt={articles[0].title}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            onError={(e) => {
+                                e.target.src = 'https://via.placeholder.com/800x400?text=No+Image';
+                            }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+                            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+                                <div className="flex items-center space-x-4 text-white/80 text-sm mb-3">
+                                    <span className="bg-primary-600 text-white px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
+                                        Featured
+                                    </span>
+                                    <div className="flex items-center space-x-2">
+                                        <User className="w-4 h-4" />
+                                        <span>{articles[0].source?.name}</span>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <Clock className="w-4 h-4" />
+                                        <span>{getTimeAgo(articles[0].publishedAt)}</span>
+                                    </div>
+                                </div>
+                                <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 leading-tight group-hover:text-primary-400 transition-colors">
+                                    {articles[0].title}
+                                </h2>
+                                <p className="text-gray-300 text-lg md:text-xl line-clamp-2 mb-6 max-w-3xl">
+                                    {articles[0].description}
+                                </p>
+                                <a
+                                    href={articles[0].url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center space-x-2 bg-white text-gray-900 hover:bg-primary-50 px-6 py-3 rounded-lg font-semibold transition-colors"
+                                >
+                                    <span>Read Full Story</span>
+                                    <ExternalLink className="w-4 h-4" />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* News Grid (Remaining Articles) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <AnimatePresence>
-                    {articles.map((article, index) => (
+                    {articles.slice(1).map((article, index) => (
                         <motion.div
                             key={`${article.url}-${index}`}
                             initial={{ opacity: 0, y: 20 }}
@@ -185,7 +246,7 @@ const NewsList = () => {
                     <button
                         onClick={handleRefresh}
                         disabled={loading}
-                        className="flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
                     >
                         {loading ? (
                             <>

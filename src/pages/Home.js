@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import NewsList from '../components/NewsList';
+import CategoryBar from '../components/CategoryBar';
 
 const Home = () => {
     return (
@@ -10,6 +11,7 @@ const Home = () => {
             transition={{ duration: 0.5 }}
             className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200"
         >
+            <CategoryBar />
             <NewsList />
         </motion.div>
     );

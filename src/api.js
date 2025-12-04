@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_KEY = '01bc4d62b010ee35b580181d319565c5'; // GNews.io API key
+const API_KEY = 'f28d2684d54f2d4d8b269548059d10de'; // GNews.io API key
 
 // Create a cancellation token source for request control
 let cancelTokenSource = axios.CancelToken.source();
@@ -88,33 +88,41 @@ const mockArticles = [
 ];
 const BASE_URL = 'https://gnews.io/api/v4';
 
-export const fetchTopHeadlines = async (page = 1) => {
+export const fetchTopHeadlines = async (page = 1, category = 'general') => {
     // Cancel any ongoing requests
     cancelOngoingRequests();
-    
+
     // If API key is not set, return mock data
     if (API_KEY === 'YOUR_NEW_API_KEY_HERE') {
         console.log('Using mock data - please set your API key in src/api.js');
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         // Return paginated mock data
         const startIndex = (page - 1) * 10;
         const endIndex = startIndex + 10;
         return mockArticles.slice(startIndex, endIndex);
     }
-    
+
     try {
-        const response = await axios.get(`${BASE_URL}/top-headlines`, {
-        params: {
+        const params = {
             token: API_KEY,
             lang: 'en',
             page: page,
             max: 10
-        },
-        cancelToken: cancelTokenSource.token
+        };
+
+        // Only add category if it's not 'general' (GNews default is effectively general/top headlines)
+        // GNews 'top-headlines' endpoint supports 'topic' parameter which maps to categories
+        if (category && category !== 'general') {
+            params.topic = category;
+        }
+
+        const response = await axios.get(`${BASE_URL}/top-headlines`, {
+            params: params,
+            cancelToken: cancelTokenSource.token
         });
-        
+
         // Check if the response contains errors
         if (response.data.errors) {
             const errorMessage = response.data.errors[0] || 'API request failed';
@@ -123,7 +131,7 @@ export const fetchTopHeadlines = async (page = 1) => {
                 console.log('API account needs activation, using mock data');
                 // Simulate API delay
                 await new Promise(resolve => setTimeout(resolve, 1000));
-                
+
                 // Return paginated mock data
                 const startIndex = (page - 1) * 10;
                 const endIndex = startIndex + 10;
@@ -131,62 +139,63 @@ export const fetchTopHeadlines = async (page = 1) => {
             }
             throw new Error(errorMessage);
         }
-        
+
         return response.data.articles;
     } catch (error) {
         console.error("Error fetching top headlines", error);
-        
+
         // Handle rate limit (429) or other API errors by falling back to mock data
         if (error.response?.status === 429 || error.response?.status === 403) {
             console.log('API rate limit exceeded, using mock data');
             // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 1000));
-            
+
             // Return paginated mock data
             const startIndex = (page - 1) * 10;
             const endIndex = startIndex + 10;
             return mockArticles.slice(startIndex, endIndex);
         }
-        
+
         // For other errors, re-throw
         throw error;
     }
-    };
+};
 
-export const searchNews = async (query, page = 1) => {
+export const searchNews = async (query, page = 1, sortBy = 'publishedAt') => {
     // Cancel any ongoing requests for search
     cancelOngoingRequests();
-    
+
     // If API key is not set, return filtered mock data
     if (API_KEY === 'YOUR_NEW_API_KEY_HERE') {
         console.log('Using mock data for search - please set your API key in src/api.js');
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         // Filter mock data based on query
-        const filteredArticles = mockArticles.filter(article => 
+        const filteredArticles = mockArticles.filter(article =>
             article.title.toLowerCase().includes(query.toLowerCase()) ||
             article.description.toLowerCase().includes(query.toLowerCase())
         );
-        
+
         // Return paginated results
         const startIndex = (page - 1) * 10;
         const endIndex = startIndex + 10;
         return filteredArticles.slice(startIndex, endIndex);
     }
-    
+
     try {
         const response = await axios.get(`${BASE_URL}/search`, {
-        params: {
-            q: query,
-            token: API_KEY,
-            lang: 'en',
-            page: page,
-            max: 10
-        },
-        cancelToken: cancelTokenSource.token
+            params: {
+                q: query,
+                token: API_KEY,
+                lang: 'en',
+                page: page,
+                max: 10,
+                sortby: sortBy // publishedAt or relevance
+            },
+            cancelToken: cancelTokenSource.token
         });
-        
+
         // Check if the response contains errors
         if (response.data.errors) {
             const errorMessage = response.data.errors[0] || 'API request failed';
@@ -195,13 +204,13 @@ export const searchNews = async (query, page = 1) => {
                 console.log('API account needs activation, using mock data for search');
                 // Simulate API delay
                 await new Promise(resolve => setTimeout(resolve, 1000));
-                
+
                 // Filter mock data based on query
-                const filteredArticles = mockArticles.filter(article => 
+                const filteredArticles = mockArticles.filter(article =>
                     article.title.toLowerCase().includes(query.toLowerCase()) ||
                     article.description.toLowerCase().includes(query.toLowerCase())
                 );
-                
+
                 // Return paginated results
                 const startIndex = (page - 1) * 10;
                 const endIndex = startIndex + 10;
@@ -209,29 +218,29 @@ export const searchNews = async (query, page = 1) => {
             }
             throw new Error(errorMessage);
         }
-        
+
         return response.data.articles;
     } catch (error) {
         console.error("Error searching for news", error);
-        
+
         // Handle rate limit (429) or other API errors by falling back to mock data
         if (error.response?.status === 429 || error.response?.status === 403) {
             console.log('API rate limit exceeded, using mock data for search');
             // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 1000));
-            
+
             // Filter mock data based on query
-            const filteredArticles = mockArticles.filter(article => 
+            const filteredArticles = mockArticles.filter(article =>
                 article.title.toLowerCase().includes(query.toLowerCase()) ||
                 article.description.toLowerCase().includes(query.toLowerCase())
             );
-            
+
             // Return paginated results
             const startIndex = (page - 1) * 10;
             const endIndex = startIndex + 10;
             return filteredArticles.slice(startIndex, endIndex);
         }
-        
+
         // For other errors, re-throw
         throw error;
     }
