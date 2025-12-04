@@ -1,0 +1,16 @@
+[debug] [2025-12-04T13:26:27.839Z] ----------------------------------------------------------------------
+[debug] [2025-12-04T13:26:27.841Z] Command:       /Users/swastik/.nvm/versions/node/v20.19.4/bin/node /opt/homebrew/bin/firebase deploy --only hosting
+[debug] [2025-12-04T13:26:27.841Z] CLI Version:   14.9.0
+[debug] [2025-12-04T13:26:27.841Z] Platform:      darwin
+[debug] [2025-12-04T13:26:27.841Z] Node Version:  v20.19.4
+[debug] [2025-12-04T13:26:27.841Z] Time:          Thu Dec 04 2025 18:56:27 GMT+0530 (India Standard Time)
+[debug] [2025-12-04T13:26:27.841Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-12-04T13:26:27.953Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-12-04T13:26:27.954Z] > authorizing via signed-in user (swastikshetty06ss@gmail.com)
+[debug] [2025-12-04T13:26:27.954Z] [iam] checking project news-app-06 for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-12-04T13:26:27.954Z] Checked if tokens are valid: true, expires at: 1764857322245
+[debug] [2025-12-04T13:26:27.954Z] Checked if tokens are valid: true, expires at: 1764857322245
+[debug] [2025-12-04T13:26:27.955Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/news-app-06:testIamPermissions [none]
+[debug] [2025-12-04T13:26:27.955Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/news-app-06:testIamPermissions x-goog-quota-user=projects/news-app-06
+[debug] [2025-12-04T13:26:27.955Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/news-app-06:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
